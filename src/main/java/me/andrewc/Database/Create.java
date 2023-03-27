@@ -8,6 +8,9 @@ import java.io.FileNotFoundException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Create extends Base {
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Create.class);
@@ -77,7 +80,11 @@ public class Create extends Base {
         };
 
         try {
-            return callable.call();
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<Boolean> future = executor.submit(callable);
+            Boolean result = future.get();
+            executor.shutdown();
+            return result;
         } catch (Exception ex) {
             logger.error("Failed to create table: " + clazz.getName());
             return false;
