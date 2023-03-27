@@ -8,6 +8,7 @@ import java.sql.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Delete extends Base {
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Delete.class);
@@ -45,9 +46,12 @@ public class Delete extends Base {
             return deleted;
         };
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
-            return executor.submit(callable).get();
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<Boolean> future = executor.submit(callable);
+            Boolean result = future.get();
+            executor.shutdown();
+            return result;
         } catch (Exception ex) {
             logger.error("Failed to drop table: " + tableName.getName());
             return false;
@@ -93,7 +97,10 @@ public class Delete extends Base {
 
         try {
             ExecutorService executor = Executors.newSingleThreadExecutor();
-            return executor.submit(callable).get();
+            Future<Boolean> future = executor.submit(callable);
+            Boolean result = future.get();
+            executor.shutdown();
+            return result;
         } catch (Exception ex) {
             logger.error("Failed to delete from table: " + table.getName());
             return false;
