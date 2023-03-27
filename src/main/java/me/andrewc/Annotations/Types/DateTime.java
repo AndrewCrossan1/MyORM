@@ -1,0 +1,12 @@
+package me.andrewc.Annotations.Types;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface DateTime {
+    String format() default "yyyy-Mmm-dd HH:mm:ss"; // 2016-Jan-01 12:00:00
+}
