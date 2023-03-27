@@ -57,11 +57,7 @@ public class Create extends Base {
 
         // Now construct the query, (replace 2 with the generated lines)
         query = query.replace("2", String.join(", ", lines));
-
         PreparedStatement stmt = conn.prepareStatement(query);
-
-        logger.info("Connection? " + (conn == null ? "No" : "Yes"));
-        logger.info("Query: " + query);
 
         // Execute the query
         stmt.execute();
@@ -74,12 +70,10 @@ public class Create extends Base {
             logger.info("Table " + EntityProcessor.getTableName() + " created");
             created = true;
         } else {
-            logger.info("Table " + EntityProcessor.getTableName() + " not created");
+            logger.warn("Table " + EntityProcessor.getTableName() + " not created");
         }
-
-        // Print the location of the sqlite database file
-        logger.info("Database file location: " + conn.getMetaData().getURL());
-        // Close connection
+        // Close connection and Statement
+        stmt.close();
         conn.close();
         return created;
     }
