@@ -2,9 +2,6 @@ package JDBCTests;
 
 import me.andrewc.Database.Create;
 import me.andrewc.Database.Delete;
-import me.andrewc.Exceptions.InvalidTypeException;
-import me.andrewc.Exceptions.InvalidValueLength;
-import me.andrewc.Exceptions.NoFieldFound;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import testModels.Book;
@@ -12,13 +9,12 @@ import testModels.Book;
 import java.io.FileNotFoundException;
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DropTest {
 
     @BeforeEach
-    public void setup() throws SQLException, FileNotFoundException, NoFieldFound, InvalidValueLength, InvalidTypeException {
+    public void setup() throws SQLException, FileNotFoundException {
         Create create = new Create("test.properties");
         create.CreateTable(Book.class);
     }
@@ -37,8 +33,6 @@ public class DropTest {
         Delete delete = new Delete("test.properties");
         delete.Drop(Book.class, false);
 
-        assertThrows(SQLException.class, () -> {
-            delete.Drop(Book.class, false);
-        });
+        assertFalse(delete.Drop(Book.class, false));
     }
 }
