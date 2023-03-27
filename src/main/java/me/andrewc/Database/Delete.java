@@ -43,8 +43,37 @@ public class Delete extends Base {
         return deleted;
     }
 
-    public boolean DeleteFrom(String tableName, String where) {
-        logger.info("Deleting from table: " + tableName + " where: " + where);
-        return true;
+    public boolean DeleteFrom(Class<?> table, String where, String condition) throws SQLException {
+        Connection conn = getConnection();
+        if (conn == null) {
+            logger.error("Could not get connection");
+            return false;
+        }
+        String query = "DELETE FROM 1 WHERE 2 = 3;";
+        EntityProcessor.process(table);
+        query = query.replace("1", EntityProcessor.getTableName());
+        query = query.replace("2", where);
+        query = query.replace("3", condition);
+
+        Statement stmt = conn.createStatement();
+
+        // Execute the query
+        int result = stmt.executeUpdate(query);
+        boolean deleted = false;
+
+        if (result <= 0) {
+            logger.error("Could not delete from table: " + EntityProcessor.getTableName());
+        } else if (result == 1) {
+            logger.info("Deleted 1 row from table: " + EntityProcessor.getTableName());
+            deleted = true;
+        } else {
+            logger.info("Deleted " + result + " row(s) from table: " + EntityProcessor.getTableName());
+            deleted = true;
+        }
+        // Close the connection
+        stmt.close();
+        conn.close();
+
+        return deleted;
     }
 }
