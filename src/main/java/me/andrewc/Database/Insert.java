@@ -9,7 +9,9 @@ import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class Insert extends Base {
@@ -79,7 +81,6 @@ public class Insert extends Base {
                 return true;
             } catch (Exception e) {
                 logger.error("Failed to insert row into table: " + EntityProcessor.getTableName());
-                e.printStackTrace();
             }
             return false;
         };
@@ -89,7 +90,6 @@ public class Insert extends Base {
         try {
             return task.get();
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
             return false;
         } finally {
             executor.shutdown();
@@ -99,9 +99,64 @@ public class Insert extends Base {
     /**
      * Insert multiple rows into the table
      */
-    public <T> boolean InsertMultiple(Class<?> table, T[] instances) throws SQLException {
-        EntityProcessor.process(table);
-        logger.info("Inserting multiple rows into table: " + EntityProcessor.getTableName());
+    public <T> boolean InsertMultiple(Class<?> table, T[] instances) {
+        try {
+            Runtime.getRuntime().exec("clear");
+        } catch (Exception e) {
+            logger.error("Failed to clear console");
+        }
+        // Split the instances into chunks of 10
+        int chunkSize = 10;
+        int numOfChunks = (int) Math.ceil((double) instances.length / chunkSize);
+
+        // Create a 2D Array where each index is a sub array of the original instances array
+        Object[][] chunks = new Object[numOfChunks][];
+        for (int i = 0; i < numOfChunks; ++i) {
+            int start = i * chunkSize;
+            int length = Math.min(instances.length - start, chunkSize);
+            Object[] temp = new Object[length];
+            System.arraycopy(instances, start, temp, 0, length);
+            chunks[i] = temp;
+        }
+
+        // Add remaining instances to final chunk if necessary
+        if (instances.length % chunkSize != 0) {
+            int finalChunkIndex = numOfChunks - 1;
+            int finalChunkSize = instances.length % chunkSize;
+            Object[] finalChunk = new Object[finalChunkSize];
+            System.arraycopy(instances, instances.length - finalChunkSize, finalChunk, 0, finalChunkSize);
+            chunks[finalChunkIndex] = finalChunk;
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        List<Callable<Boolean>> tasks = new ArrayList<>();
+
+        for (Object[] chunk : chunks) {
+            tasks.add(() -> {
+                for (Object instance : chunk) {
+                    if (!InsertSingle(table, instance)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+        }
+
+        try {
+            List<Future<Boolean>> results = executor.invokeAll(tasks);
+
+            for (Future<Boolean> result : results) {
+                if (!result.get()) {
+                    executor.shutdownNow();
+                    return false;
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            executor.shutdownNow();
+            return false;
+        } finally {
+            executor.shutdown();
+        }
         return true;
     }
 }
