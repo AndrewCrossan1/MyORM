@@ -19,10 +19,14 @@ public abstract class Model {
     @Id
     @NotNull
     @PrimaryKey
-    private final UUID ID;
+    private UUID ID;
 
     public UUID getID() {
         return ID;
+    }
+
+    public void setID(UUID ID) {
+        this.ID = ID;
     }
 
     public Model() {
