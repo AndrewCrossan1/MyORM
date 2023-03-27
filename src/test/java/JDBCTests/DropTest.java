@@ -36,7 +36,7 @@ public class DropTest {
         // Run twice to ensure that the table does not exist when we try to drop it
         Delete delete = new Delete("test.properties");
         delete.Drop(Book.class, false);
-        
+
         assertThrows(SQLException.class, () -> {
             delete.Drop(Book.class, false);
         });
