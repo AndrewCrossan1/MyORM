@@ -15,7 +15,7 @@ public class Delete extends Base {
         super(filePath);
     }
 
-    public boolean Drop(Class<?> tableName, boolean Cascade) throws SQLException {
+    public boolean Drop(Class<?> tableName, boolean Cascade) {
         Callable<Boolean> callable = () -> {
             Connection conn = getConnection();
             if (conn == null) {
@@ -54,37 +54,49 @@ public class Delete extends Base {
         }
     }
 
-    public boolean DeleteFrom(Class<?> table, String where, String condition) throws SQLException {
-        Connection conn = getConnection();
-        if (conn == null) {
-            logger.error("Could not get connection");
+    public boolean DeleteFrom(Class<?> table, String where, String condition) {
+        Callable<Boolean> callable = () -> {
+            Connection conn = getConnection();
+            if (conn == null) {
+                logger.error("Could not get connection");
+                return false;
+            }
+            String query = "DELETE FROM 1 WHERE 2 = '3';";
+            EntityProcessor.process(table);
+            query = query.replace("1", EntityProcessor.getTableName());
+            query = query.replace("2", where);
+            query = query.replace("3", condition);
+
+            Statement stmt = conn.createStatement();
+
+            // Execute the query
+            int result = stmt.executeUpdate(query);
+            boolean deleted = false;
+
+
+
+            if (result <= 0) {
+                logger.error("Could not delete from table: " + EntityProcessor.getTableName());
+            } else if (result == 1) {
+                logger.info("Deleted 1 row from table: " + EntityProcessor.getTableName());
+                deleted = true;
+            } else {
+                logger.info("Deleted " + result + " row(s) from table: " + EntityProcessor.getTableName());
+                deleted = true;
+            }
+            // Close the connection
+            stmt.close();
+            conn.close();
+
+            return deleted;
+        };
+
+        try {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            return executor.submit(callable).get();
+        } catch (Exception ex) {
+            logger.error("Failed to delete from table: " + table.getName());
             return false;
         }
-        String query = "DELETE FROM 1 WHERE 2 = 3;";
-        EntityProcessor.process(table);
-        query = query.replace("1", EntityProcessor.getTableName());
-        query = query.replace("2", where);
-        query = query.replace("3", condition);
-
-        Statement stmt = conn.createStatement();
-
-        // Execute the query
-        int result = stmt.executeUpdate(query);
-        boolean deleted = false;
-
-        if (result <= 0) {
-            logger.error("Could not delete from table: " + EntityProcessor.getTableName());
-        } else if (result == 1) {
-            logger.info("Deleted 1 row from table: " + EntityProcessor.getTableName());
-            deleted = true;
-        } else {
-            logger.info("Deleted " + result + " row(s) from table: " + EntityProcessor.getTableName());
-            deleted = true;
-        }
-        // Close the connection
-        stmt.close();
-        conn.close();
-
-        return deleted;
     }
 }
