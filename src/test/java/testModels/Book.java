@@ -1,6 +1,7 @@
 package testModels;
 
 import me.andrewc.Annotations.Column;
+import me.andrewc.Annotations.Constraints.NotNull;
 import me.andrewc.Annotations.Types.*;
 import me.andrewc.Annotations.Entity;
 import me.andrewc.Annotations.Types.Number;
@@ -13,6 +14,7 @@ public class Book extends Model {
 
     @Column
     @Varchar(length = 255)
+    @NotNull
     private String title;
 
     @Column
@@ -36,12 +38,14 @@ public class Book extends Model {
     private String updatedAt;
 
     public Book(String title, BigDecimal price, String description) {
+        super();
         this.title = title;
         this.price = price;
         this.description = description;
     }
 
     public Book(String title, BigDecimal price, String description, int pages) {
+        super();
         this.title = title;
         this.price = price;
         this.description = description;
@@ -49,6 +53,7 @@ public class Book extends Model {
     }
 
     public Book(String title, BigDecimal price, String description, int pages, String createdAt, String updatedAt) {
+        super();
         this.title = title;
         this.price = price;
         this.description = description;
